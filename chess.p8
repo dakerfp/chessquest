@@ -96,14 +96,14 @@ end
 function fetch_next_enemy(cost)
 	cost_table = {
 		{e_bat, 1}, -- bat must come first
-		{e_spinner, 2},
-		{e_red_bat, 2},
+		{e_spinner, 3},
+		{e_red_bat, 3},
 		{e_slime, 3},
-		{e_ember, 3},
 		{e_skeleton, 3},
-		{e_kobold, 4},
-		{e_ghost, 4},
-		{e_knight, 5},
+		{e_kobold, 5},
+		{e_ember, 5},
+		{e_ghost, 7},
+		{e_knight, 7},
 	}
 	i = 1 + flr(rnd(#cost_table) + 4) % #cost_table
 	while i > 0 do
