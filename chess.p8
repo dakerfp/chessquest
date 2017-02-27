@@ -96,14 +96,14 @@ end
 function fetch_next_enemy(cost)
 	cost_table = {
 		{e_bat, 1}, -- bat must come first
+		{e_spinner, 2},
 		{e_red_bat, 2},
-        {e_spinner, 2},
 		{e_slime, 3},
-        {e_ember, 3},
-        {e_skeleton, 3},
+		{e_ember, 3},
+		{e_skeleton, 3},
 		{e_kobold, 4},
 		{e_ghost, 4},
-        {e_knight, 5},
+		{e_knight, 5},
 	}
 	i = 1 + flr(rnd(#cost_table) + 4) % #cost_table
 	while i > 0 do
@@ -145,10 +145,14 @@ function init_random_level(cost)
 end
 
 function move_red_bat(e)
-    e.vx = sgn(p.x - e.x) * u
-    if can_move_to(e,e.x+e.vx,e.y) then
-		e.x += e.vx	
-    end
+	if p.x < e.x then
+		e.vx = -u
+	elseif p.x > e.x then
+		e.vx = u
+	end
+	if can_move_to(e,e.x+e.vx,e.y) then
+		e.x += e.vx
+	end
 end
 
 function move_bat(e)
