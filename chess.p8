@@ -454,7 +454,7 @@ function s_traps()
 		if trap.i == 0 then
 			sfx(14)
 		 	e = get_enemy_at(trap.x,trap.y)
-			if e != nil then
+			if e != nil and e.t != e_spinner then
 				kill(e)
 			elseif trap.x == p.x and trap.y == p.y then
 				_update = s_die
