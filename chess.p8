@@ -42,7 +42,7 @@ e_spinner    = 20
 p = {t=e_player,x=u,y=u,vx=u,cx=u,cy=u}
 t = 0
 dead_bodies = {}
-enemies = {}        
+enemies = {}
 traps = {}
 
 function randomize_section(from, to)
@@ -128,7 +128,7 @@ function init_random_level(cost)
 			x = flr(9 - rnd(9 + 4) % 9) * u
 			y = flr(rnd(7)) * u
 			vx = 1 - 2 * flr(rnd(2)) -- 1 or -1
-            vy = 1 - 2 * flr(rnd(2)) -- 1 or -1
+			vy = 1 - 2 * flr(rnd(2)) -- 1 or -1
 
 			if not hits_wall(x, y)
 				and get_enemy_at(x,y) == nil
@@ -164,23 +164,23 @@ function move_bat(e)
 end
 
 function move_spinner(e)
-    if can_move_to(e,e.x+e.vx,e.y+e.vy) then
-        e.x += e.vx
-        e.y += e.vy
-    elseif can_move_to(e,e.x+e.vx,e.y-e.vy) then
-        e.x += e.vx
-        e.y -= e.vy
-        e.vy = -e.vy
-    elseif can_move_to(e,e.x-e.vx,e.y+e.vy) then
-        e.x -= e.vx
-        e.y += e.vy
-        e.vx = -e.vx
-    else
-        e.x -= e.vx
-        e.y -= e.vy
-        e.vx = -e.vx
-        e.vy = -e.vy
-    end
+	if can_move_to(e,e.x+e.vx,e.y+e.vy) then
+		e.x += e.vx
+		e.y += e.vy
+	elseif can_move_to(e,e.x+e.vx,e.y-e.vy) then
+		e.x += e.vx
+		e.y -= e.vy
+		e.vy = -e.vy
+	elseif can_move_to(e,e.x-e.vx,e.y+e.vy) then
+		e.x -= e.vx
+		e.y += e.vy
+		e.vx = -e.vx
+	else
+		e.x -= e.vx
+		e.y -= e.vy
+		e.vx = -e.vx
+		e.vy = -e.vy
+	end
 end
 
 function move_slime(e)
@@ -235,37 +235,37 @@ function move_ghost(e)
 end
 
 function move_knight(e)
-    return move_closest(e, {
-        {x=e.x-u,y=e.y},
-        {x=e.x-u,y=e.y+u},
-        {x=e.x-u,y=e.y-u},
-        {x=e.x,y=e.y},
-        {x=e.x,y=e.y+u},
-        {x=e.x,y=e.y-u},
-        {x=e.x+u,y=e.y},
-        {x=e.x+u,y=e.y+u},
-        {x=e.x+u,y=e.y-u}}, true)
+	return move_closest(e, {
+		{x=e.x-u,y=e.y},
+		{x=e.x-u,y=e.y+u},
+		{x=e.x-u,y=e.y-u},
+		{x=e.x,y=e.y},
+		{x=e.x,y=e.y+u},
+		{x=e.x,y=e.y-u},
+		{x=e.x+u,y=e.y},
+		{x=e.x+u,y=e.y+u},
+		{x=e.x+u,y=e.y-u}}, true)
 end
 
 function move_ember(e)
-    tries = {
-        {x=e.x-u,y=e.y},
-        {x=e.x+u,y=e.y},
-        {x=e.x,y=e.y-u},
-        {x=e.x,y=e.y+u}
-    }
-    if can_move_to(e,e.x+u,e.y) then
-        add(tries,{x=e.x+2*u,y=e.y})
-    end
-    if can_move_to(e,e.x-u,e.y) then
-        add(tries,{x=e.x-2*u,y=e.y})
-    end
-    if can_move_to(e,e.x,e.y-u) then
-        add(tries,{x=e.x,y=e.y-2*u})
-    end
-    if can_move_to(e,e.x,e.y+u) then
-        add(tries,{x=e.x,y=e.y+2*u})
-    end
+	tries = {
+		{x=e.x-u,y=e.y},
+		{x=e.x+u,y=e.y},
+		{x=e.x,y=e.y-u},
+		{x=e.x,y=e.y+u}
+	}
+	if can_move_to(e,e.x+u,e.y) then
+		add(tries,{x=e.x+2*u,y=e.y})
+	end
+	if can_move_to(e,e.x-u,e.y) then
+		add(tries,{x=e.x-2*u,y=e.y})
+	end
+	if can_move_to(e,e.x,e.y-u) then
+		add(tries,{x=e.x,y=e.y-2*u})
+	end
+	if can_move_to(e,e.x,e.y+u) then
+		add(tries,{x=e.x,y=e.y+2*u})
+	end
 	return move_closest(e, tries, true)
 end
 
@@ -296,7 +296,7 @@ end
 
 function can_move_to(e,x,y)
 	return not hits_wall(x,y) and (get_enemy_at(x,y) == nil or e.t == e_spinner)
-        and x >= 0 and x <= 10*u and y >= 0 and y <= 8*u
+		and x >= 0 and x <= 10*u and y >= 0 and y <= 8*u
 end
 
 function hits_wall(x,y)
@@ -316,18 +316,18 @@ end
 
 function _init()
 	level = 0
-    show_player = true
+	show_player = true
 	_update = s_home
-    _draw = draw_home
+	_draw = draw_home
 end
 
 function over_dead_slime(e)
-    for b in all(dead_bodies) do
-        if e.x == b.x and e.y == b.y and b.t == e_dead_slime then
-            return true
-        end
-    end
-    return false
+	for b in all(dead_bodies) do
+		if e.x == b.x and e.y == b.y and b.t == e_dead_slime then
+			return true
+		end
+	end
+	return false
 end
 
 dpressed = false
@@ -336,56 +336,56 @@ function move_cursor(p)
 		(btn(0) or btn(1)
 		 or btn(2) or btn(3)) then
 		 -- pass
-    elseif btn(0) then
+	elseif btn(0) then
 		if p.cy == p.y and
 			p.cx >= p.x - u and
 			not hits_wall(p.cx - u, p.cy) and (
 				p.cx > p.x or
 				can_move_to(p,p.cx,p.cy)
 			)
-        then
+		then
 			p.cx -= u
-        end
-        dpressed = true
-    elseif btn(1) then
-        if p.cy == p.y and
-            p.cx <= p.x + u and
-            not hits_wall(p.cx + u, p.cy) and (
+		end
+		dpressed = true
+	elseif btn(1) then
+		if p.cy == p.y and
+			p.cx <= p.x + u and
+			not hits_wall(p.cx + u, p.cy) and (
 				p.cx < p.x or
 				can_move_to(p,p.cx,p.cy)
 			)
-        then
+		then
 			p.cx += u
 		end
-        dpressed = true
-    elseif btn(2) then
-        if p.cx == p.x and
-            p.cy >= p.y - u and
-            not hits_wall(p.cx, p.cy - u) and (
- 			    p.cy > p.y or
- 			    can_move_to(p,p.cx,p.cy)
-            )
-        then
+		dpressed = true
+	elseif btn(2) then
+		if p.cx == p.x and
+			p.cy >= p.y - u and
+			not hits_wall(p.cx, p.cy - u) and (
+				p.cy > p.y or
+				can_move_to(p,p.cx,p.cy)
+			)
+		then
 			p.cy -= u
 		end
-        dpressed = true
+		dpressed = true
 	elseif btn(3) then
 		if p.cx == p.x and
-            p.cy <= p.y + u and not hits_wall(p.cx, p.cy + u) and (
+			p.cy <= p.y + u and not hits_wall(p.cx, p.cy + u) and (
  			p.cy < p.y or
  			can_move_to(e,p.cx,p.cy))
 		then
 			p.cy += u
 		end
-        dpressed = true
+		dpressed = true
 	else
 		dpressed = false
 	end
  
 	if p.cx > p.x then
 		p.vx = u
-    elseif p.cx < p.x then
-        p.vx = -u
+	elseif p.cx < p.x then
+		p.vx = -u
 	end
 
 	return btn(4)
@@ -422,10 +422,10 @@ function s_player()
 	_update = animate(p,fx,fy,function ()
 		e = get_enemy_at(p.x,p.y)
 		if e != nil then
-            if e.t == e_spinner then
-                _update = s_die
-                return
-            end
+			if e.t == e_spinner then
+				_update = s_die
+				return
+			end
 			kill(e)
 		end
 		_update = s_traps
@@ -436,15 +436,15 @@ function s_die()
 	sfx(12)
 	update_animation()
 	show_player = false
-    _draw = draw_game_over
+	_draw = draw_game_over
 	_update = s_dead
 end
 
 function s_dead()
 	update_animation()
-    if btn(4) and btn(5) then
-        _init()
-    end
+	if btn(4) and btn(5) then
+		_init()
+	end
 end
 
 function s_traps()
@@ -480,9 +480,9 @@ function s_enemies()
 	elseif e.t == e_red_bat then
 		sfx(13)
 		animate_move(e, move_red_bat)
-    elseif e.t == e_spinner then
-        sfx(13)
-        animate_move(e, move_spinner)
+	elseif e.t == e_spinner then
+		sfx(13)
+		animate_move(e, move_spinner)
 	elseif e.t == e_slime then
 		sfx(13)
 		animate_move(e, move_slime)
@@ -498,9 +498,9 @@ function s_enemies()
 	elseif e.t == e_ember then
 		sfx(13)
 		animate_move(e, move_ember)
-    elseif e.t == e_knight then
-        sfx(13)
-        animate_move(e, move_knight)
+	elseif e.t == e_knight then
+		sfx(13)
+		animate_move(e, move_knight)
 	end
 	idx += 1
 end
@@ -508,15 +508,15 @@ end
 function animate_move(e, move)
 	px,py=e.x,e.y
 	next_s = s_enemies
-    move(e)
+	move(e)
 	if e.x == p.x and e.y == p.y then
 		next_s = s_die
-    elseif e.t == e_spinner then
-        for o in all(enemies) do
-            if o != e and e.x == o.x and e.y == o.y then
-                kill(o)
-            end
-        end
+	elseif e.t == e_spinner then
+		for o in all(enemies) do
+			if o != e and e.x == o.x and e.y == o.y then
+				kill(o)
+			end
+		end
 	end
 
 	_update=animate(e,px,py,next_s)
@@ -562,13 +562,13 @@ function s_next_level()
 end
 
 function s_home()
-    if btn(4) and not btn(5) then
-        _update = s_next_level
-        _draw = draw_game
-    else
-        _update = s_home
-        _draw = draw_home
-    end
+	if btn(4) and not btn(5) then
+		_update = s_next_level
+		_draw = draw_game
+	else
+		_update = s_home
+		_draw = draw_home
+	end
 end
 
 show_hint = true
@@ -617,8 +617,8 @@ function draw_game()
 	for trap in all(traps) do
 		if trap.i == 0 then
 			spr(e_floor_trap, off.x+trap.x,off.y+trap.y,1,1)
-        elseif trap.i == 2  then
-            spr(e_floor_trap+1, off.x+trap.x,off.y+trap.y,1,1)
+		elseif trap.i == 2  then
+			spr(e_floor_trap+1, off.x+trap.x,off.y+trap.y,1,1)
 		end
 	end
 
@@ -627,7 +627,7 @@ function draw_game()
 		if e.t == e_skeleton or
 			e.t == e_kobold or
 			e.t == e_ember or
-            e.t == e_knight
+			e.t == e_knight
 		then
 			palt(11, true)
 			palt(0, false)
@@ -644,13 +644,13 @@ end
 
 home_show=0
 function draw_home()
-    cls()
-    mapdraw(0, 0, 20, 30, 11, 8) -- tiles
-    print('chessquest', 45, 44)
-    home_show = (home_show+1)%32
-    if home_show < 16 then
-        print('press \142 to play', 34, 44 + 2 * u)
-    end
+	cls()
+	mapdraw(0, 0, 20, 30, 11, 8) -- tiles
+	print('chessquest', 45, 44)
+	home_show = (home_show+1)%32
+	if home_show < 16 then
+		print('press \142 to play', 34, 44 + 2 * u)
+	end
 end
 
 death_msg = 'game over'
