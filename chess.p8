@@ -5,7 +5,7 @@ __lua__
 -- by dakerfp
 
 -- todo:
---- add ember side fire
+--- check for ember chain reaction
 --- add slime slow
 --- add elemental
 --- add mage
@@ -28,6 +28,7 @@ e_player     = 33
 e_bat        = 49
 e_red_bat    = 51
 e_slime      = 57
+e_fire_elem  = 25
 e_skeleton   = 59
 e_kobold     = 37
 e_ghost      = 39
@@ -39,7 +40,7 @@ e_dead_skel  = 6
 e_floor_trap = 61
 e_spinner    = 20
 
-p = {t=e_player,x=u,y=u,vx=u,cx=u,cy=u}
+p = {t=e_player,x=u,y=u,vx=u,cx=u,cy=u,hp=3}
 t = 0
 dead_bodies = {}
 enemies = {}
@@ -100,6 +101,7 @@ function fetch_next_enemy(cost)
 		{e_spinner, 3},
 		{e_red_bat, 3},
 		{e_slime, 3},
+		{e_fire_elem, 5},
 		{e_skeleton, 3},
 		{e_kobold, 5},
 		{e_ember, 5},
@@ -118,11 +120,11 @@ function fetch_next_enemy(cost)
 end
 
 function init_random_level(cost)
-	dead_bodies = {}
 	enemies={}
+	dead_bodies = {}
 	traps = {}
 	randomize_map() -- xxx
-	p = {x=u,y=5*u,vx=u,cx=u,cy=5*u}
+	p = {x=u,y=5*u,vx=u,cx=u,cy=5*u, hp=3}
 	while cost > 0 do
 		while true do
 			-- 2x more probable to fit in 2nd half
@@ -192,8 +194,16 @@ function move_slime(e)
 		{x=e.x  ,y=e.y+u}}, false)
 end
 
+function move_fire_elem(e)
+	return move_closest(e, {
+		{x=e.x-u,y=e.y  },
+		{x=e.x+u,y=e.y  },
+		{x=e.x  ,y=e.y-u},
+		{x=e.x  ,y=e.y+u}}, false)
+end
+
 function dist2(a, b)
-	dx, dy = a.x-b.x, a.y-b.y -- XXX: see if is required to add preference to vertical axis
+	dx, dy = a.x-b.x, a.y-b.y -- xxx: see if is required to add preference to vertical axis
 	return dx*dx +dy*dy
 end
 
@@ -317,7 +327,6 @@ end
 
 function _init()
 	level = 0
-	show_player = true
 	_update = s_home
 	_draw = draw_home
 end
@@ -421,7 +430,7 @@ function burn(x,y)
 		if e != nil then
 			kill(e)
 		elseif p.x == x and p.y == y then
-			_update = s_die --XXX
+			die()
 		end
 	end)
 end
@@ -434,10 +443,26 @@ function kill(e)
 			burn(e.x, e.y + u)
 			burn(e.x, e.y - u)
 		end)
+	elseif e.t == e_fire_elem then
+		particle_explosion(e.x, e.y, u * 1.5, function()
+			burn(e.x + u, e.y)
+			burn(e.x - u, e.y)
+			burn(e.x, e.y + u)
+			burn(e.x, e.y - u)
+			burn(e.x + u, e.y + u)
+			burn(e.x - u, e.y + u)
+			burn(e.x + u, e.y - u)
+			burn(e.x - u, e.y - u)
+		end)
 	end
 	add(dead_bodies, e)
 	del(enemies, e)
 	sfx(11)
+end
+
+function die()
+	show_player = false
+	p.hp = 0
 end
 
 function s_player()
@@ -449,11 +474,11 @@ function s_player()
 	_update = animate(p,fx,fy,function ()
 		e = get_enemy_at(p.x,p.y)
 		if e != nil then
-			if e.t == e_spinner then
-				_update = s_die
-				return
+			if e.t == e_spinner or e.t == e_fire_elem then
+				die()
+			else
+				kill(e)
 			end
-			kill(e)
 		end
 		_update = s_traps
 	end)
@@ -462,7 +487,6 @@ end
 function s_die()
 	sfx(12)
 	update_animation()
-	show_player = false
 	_draw = draw_game_over
 	_update = s_dead
 end
@@ -484,6 +508,7 @@ function s_traps()
 			if e != nil and e.t != e_spinner then
 				kill(e)
 			elseif trap.x == p.x and trap.y == p.y then
+				die()
 				_update = s_die
 			end
 		end
@@ -528,6 +553,9 @@ function s_enemies()
 	elseif e.t == e_ember then
 		sfx(13)
 		animate_move(e, move_ember)
+	elseif e.t == e_fire_elem then
+		sfx(13)
+		animate_move(e, move_fire_elem)
 	elseif e.t == e_knight then
 		sfx(13)
 		animate_move(e, move_knight)
@@ -537,19 +565,20 @@ end
 
 function animate_move(e, move)
 	px,py=e.x,e.y
-	next_s = s_enemies
+	next_s = _update
 	move(e)
-	if e.x == p.x and e.y == p.y then
-		next_s = s_die
-	elseif e.t == e_spinner then
-		for o in all(enemies) do
-			if o != e and e.x == o.x and e.y == o.y then
-				kill(o)
+	_update=animate(e,px,py, function()
+		if e.x == p.x and e.y == p.y then
+			die()
+		elseif e.t == e_spinner then
+			for o in all(enemies) do
+				if o != e and e.x == o.x and e.y == o.y then
+					kill(o)
+				end
 			end
 		end
-	end
-
-	_update=animate(e,px,py,next_s)
+		_update = next_s
+	end)
 end
 
 function animate(e, x, y, after)
@@ -570,7 +599,9 @@ function animate(e, x, y, after)
 end
 
 function s_check()
-	if hits_stairs(p.x,p.y) then
+	if p.hp == 0 then
+		_update = s_die
+	elseif hits_stairs(p.x,p.y) then
 		sfx(9)
 		_update = s_next_level
  	else
@@ -620,7 +651,6 @@ function particle_explosion(x,y,r,after)
 end
 
 off = {x=20, y=30}
-show_player = true
 function draw_game()
 	cls()
  
@@ -676,7 +706,7 @@ function draw_game()
 		palt(11, false)
 	end
 
-	if show_player then
+	if p.hp > 0 then
 		spr(33 + ds, off.x+p.x, off.y+p.y - 2, 1, 1, (p.vx > 0))
 	end
 
@@ -718,14 +748,14 @@ __gfx__
 0000000000888000000aa00006760000022220020bbbb00b76007007000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000080000000a000006067666022022200bb0bbb000506650000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000aa0000666060600020000000b000007060700000000000000000000000000000000000000000000000000000000000000000000000000
-000000007770077777000077aaa00aaa000700000000700000000000000000000000000000000000000000000000000000000000000000000000000000000000
-000000007000000770000007a000000a000887000078800000000000000000000000000000000000000000000000000000000000000000000000000000000000
-000000007000000700000000a000000a078888000088887000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000088a88877888988000000000000000000000000000000000000000000000000000000000000000000000000000000000
-000000000000000000000000000000007888a8800889888700000000000000000000000000000000000000000000000000000000000000000000000000000000
-000000007000000700000000a000000a008888700788880000000000000000000000000000000000000000000000000000000000000000000000000000000000
-000000007000000770000007a000000a007880000008870000000000000000000000000000000000000000000000000000000000000000000000000000000000
-000000007770077777000077aaa00aaa000070000007000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000000007770077777000077aaa00aaa0007000000007000000000000000000000000000a22222aaa88888aa0000000000000000000000000000000000000000
+000000007000000770000007a000000a00088700007880000000000000000000000000000a2a2aa00a8a8aa00000000000000000000000000000000000000000
+000000007000000700000000a000000a078888000088887000000000000000000000000000aaaa0000aaaa000000000000000000000000000000000000000000
+00000000000000000000000000000000088a888778889880000000000000000000000000009999a0909999a00000000000000000000000000000000000000000
+000000000000000000000000000000007888a8800889888700000000000000000000000009999998099999920000000000000000000000000000000000000000
+000000007000000700000000a000000a008888700788880000000000000000000000000090999909009999090000000000000000000000000000000000000000
+000000007000000770000007a000000a0078800000088700000000000000000000000000009999a0009999a00000000000000000000000000000000000000000
+000000007770077777000077aaa00aaa000070000007000000000000000000000000000000900900009009000000000000000000000000000000000000000000
 00000000003333000033330000333300003333006b5bb5bb6b5bb5bb0077700000000000bbbbbbbbbbbbbbbbb0bb0babb0bb0bab000000000000000000000000
 00000000033330000333300003333000033330006b5555bb6b5555bb0777770000777000b9999bbbb9999bbbb0000aaab0000aaa007070000070700000000000
 0000000001f1900001f1900001f1900001f190004b0505bb4b0505bb7474477007777700b0909bbbb0909bbbb5550b0bb5550b0b044444440444444400000000
