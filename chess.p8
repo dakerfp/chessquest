@@ -398,6 +398,7 @@ function update_animation()
 	for part in all(particles) do
 		part.t += part.dt
 		if part.t > 1 then
+			if part.after != nil then part.after() end
 			del(particles, part)
 		end
 	end
@@ -414,9 +415,25 @@ function s_idle()
 	end
 end
 
+function burn(x,y)
+	particle_explosion(x, y, u/2, function()
+		e = get_enemy_at(x,y)
+		if e != nil then
+			kill(e)
+		elseif p.x == x and p.y == y then
+			_update = s_die --XXX
+		end
+	end)
+end
+
 function kill(e)
 	if e.t == e_ember then
-		particle_explosion(e.x + 4, e.y + 2, 8 * 1.5)
+		particle_explosion(e.x, e.y, u * 1.5, function()
+			burn(e.x + u, e.y)
+			burn(e.x - u, e.y)
+			burn(e.x, e.y + u)
+			burn(e.x, e.y - u)
+		end)
 	end
 	add(dead_bodies, e)
 	del(enemies, e)
@@ -476,6 +493,9 @@ end
 idx = 1
 function s_enemies()
 	update_animation()
+	if #particles > 0 then -- end all animations before proceeding
+		return
+	end
 
 	if idx > #enemies then
 		_update = s_check
@@ -591,12 +611,12 @@ function draw_hint(x, y)
 	end
 end
 
-function particle_explosion(x,y,r) 
-	part = {t=0.2,dt=0.2,draw=function(t)
-		circfill(off.x+x,off.y+y,r*t+1,8)
-		circfill(off.x+x,off.y+y,r*t,10)
-	end}
-	add(particles, part)
+function particle_explosion(x,y,r,after)
+	x,y =off.x+x+4, off.y+y+2
+	add(particles, {t=0.2,dt=0.1,after=after,draw=function(t)
+		circfill(x,y,r*t+1,8)
+		circfill(x,y,r*t,10)
+	end})
 end
 
 off = {x=20, y=30}
