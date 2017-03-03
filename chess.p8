@@ -193,7 +193,7 @@ function move_slime(e)
 end
 
 function dist2(a, b)
-	dx, dy = a.x-b.x, a.y-b.y
+	dx, dy = a.x-b.x, a.y-b.y -- XXX: see if is required to add preference to vertical axis
 	return dx*dx +dy*dy
 end
 
