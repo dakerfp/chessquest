@@ -154,36 +154,32 @@ function move_red_bat(e)
 		e.vx = u
 	end
 	if can_move_to(e,e.x+e.vx,e.y) then
-		e.x += e.vx
+		return e.x + e.vx, e.y
 	end
+	return e.x, e.y
 end
 
 function move_bat(e)
-	if can_move_to(e,e.x+e.vx,e.y) then
-	   e.x += e.vx
+	if not can_move_to(e,e.x+e.vx,e.y) then
+		return e.x + e.vx, e.y
 	else
 		e.vx = -e.vx
 	end
+	return e.x, e.y
 end
 
 function move_spinner(e)
 	if can_move_to(e,e.x+e.vx,e.y+e.vy) then
-		e.x += e.vx
-		e.y += e.vy
+		-- keep going
 	elseif can_move_to(e,e.x+e.vx,e.y-e.vy) then
-		e.x += e.vx
-		e.y -= e.vy
 		e.vy = -e.vy
 	elseif can_move_to(e,e.x-e.vx,e.y+e.vy) then
-		e.x -= e.vx
-		e.y += e.vy
 		e.vx = -e.vx
 	else
-		e.x -= e.vx
-		e.y -= e.vy
 		e.vx = -e.vx
 		e.vy = -e.vy
 	end
+	return e.x + e.vx, e.y + e.vy
 end
 
 function move_slime(e)
@@ -282,6 +278,7 @@ end
 
 function move_closest(e, tries, flp)
 	md = 1000*1000
+	x, y = e.x, e.y
 	for try in all(tries) do
 		if can_move_to(e,try.x,try.y) then
 			d = dist2(p, try)
@@ -290,10 +287,11 @@ function move_closest(e, tries, flp)
 				if flp then
 					e.vx += sgn(try.x - e.x) * u
 				end
-				e.x, e.y = try.x, try.y
+				x, y = try.x, try.y
 			end
 		end
 	end
+	return x, y
 end
 
 function get_enemy_at(x,y)
@@ -467,11 +465,8 @@ end
 
 function s_player()
 	update_animation()
-	fx, fy = p.x, p.y
-	p.x, p.y = p.cx, p.cy
 	sfx(10)
-
-	_update = animate(p,fx,fy,function ()
+	_update = animate(p,p.cx,p.cy,function ()
 		e = get_enemy_at(p.x,p.y)
 		if e != nil then
 			if e.t == e_spinner or e.t == e_fire_elem then
@@ -564,15 +559,14 @@ function s_enemies()
 end
 
 function animate_move(e, move)
-	px,py=e.x,e.y
 	next_s = _update
-	move(e)
-	_update=animate(e,px,py, function()
+	x, y = move(e)
+	_update=animate(e,x,y, function()
 		if e.x == p.x and e.y == p.y then
 			die()
 		elseif e.t == e_spinner then
 			for o in all(enemies) do
-				if o != e and e.x == o.x and e.y == o.y then
+				if o != e and x == o.x and y == o.y then
 					kill(o)
 				end
 			end
@@ -581,10 +575,9 @@ function animate_move(e, move)
 	end)
 end
 
-function animate(e, x, y, after)
+function animate(e, tx, ty, after)
 	a, fs = 0, 8 -- frames
-	tx, ty = e.x, e.y
-	e.x, e.y = x, y
+	fx, fy = e.x, e.y
 	return function()
 		update_animation()
 		a += 1
@@ -592,8 +585,8 @@ function animate(e, x, y, after)
 			e.x, e.y = tx, ty
 			_update = after
 		else
-			e.x = (x * (fs - a) + tx * a) / fs
-			e.y = (y * (fs - a) + ty * a) / fs
+			e.x = (fx * (fs - a) + tx * a) / fs
+			e.y = (fy * (fs - a) + ty * a) / fs
 		end
 	end
 end
