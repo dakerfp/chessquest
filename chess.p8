@@ -157,7 +157,7 @@ function move_red_bat(e)
 end
 
 function move_bat(e)
-	if not can_move_to(e,e.x+e.vx,e.y) then
+	if can_move_to(e,e.x+e.vx,e.y) then
 		return e.x + e.vx, e.y
 	else
 		e.vx = -e.vx
