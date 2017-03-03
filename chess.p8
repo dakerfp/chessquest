@@ -44,6 +44,7 @@ t = 0
 dead_bodies = {}
 enemies = {}
 traps = {}
+particles = {}
 
 function randomize_section(from, to)
 	-- 5 diff level parts
@@ -394,6 +395,12 @@ end
 function update_animation()
 	t += 1 -- time for animation
 	t = t % 64
+	for part in all(particles) do
+		part.t += part.dt
+		if part.t > 1 then
+			del(particles, part)
+		end
+	end
 end
 
 -- states --
@@ -408,6 +415,9 @@ function s_idle()
 end
 
 function kill(e)
+	if e.t == e_ember then
+		particle_explosion(e.x + 4, e.y + 2, 8 * 1.5)
+	end
 	add(dead_bodies, e)
 	del(enemies, e)
 	sfx(11)
@@ -553,6 +563,7 @@ function s_next_level()
 	level += 1
 	if level <= 10 then
 		enemies = {}
+		particles = {}
 		init_random_level(3 * level)
 		_update = s_idle
 	else
@@ -574,17 +585,24 @@ end
 show_hint = true
 function draw_hint(x, y)
 	if hits_wall(x,y) then
-		spr(17, x, y)	
+		spr(17, x, y)
 	else
-		spr(19, x, y)	
+		spr(19, x, y)
 	end
 end
 
+function particle_explosion(x,y,r) 
+	part = {t=0.2,dt=0.2,draw=function(t)
+		circfill(off.x+x,off.y+y,r*t+1,8)
+		circfill(off.x+x,off.y+y,r*t,10)
+	end}
+	add(particles, part)
+end
+
+off = {x=20, y=30}
 show_player = true
 function draw_game()
 	cls()
- 
-	off = {x=20, y=30}
  
 	mapdraw(0, 0, off.x, off.y, 11, 8) -- tiles
 	mapdraw(22,0, off.x, off.y, 11, 8) -- map
@@ -637,8 +655,13 @@ function draw_game()
 		palt(0, true)
 		palt(11, false)
 	end
+
 	if show_player then
 		spr(33 + ds, off.x+p.x, off.y+p.y - 2, 1, 1, (p.vx > 0))
+	end
+
+	for part in all(particles) do
+		part.draw(part.t)
 	end
 end
 
