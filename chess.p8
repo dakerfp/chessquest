@@ -719,18 +719,17 @@ function draw_home()
 	end
 end
 
-death_msg = 'game over'
+
 function draw_game_over()
+	death_msg = 'game over'
+	if p.hp > 0 then
+		death_msg = 'you win!'
+	end
 	cls()
 	spr(33, 64, 64)
 	print(death_msg, 50, 44)
 end
 
-function draw_win()
-	cls()
-	spr(33, 64, 64)
-	print('you win!', 50, 44)
-end
 
 __gfx__
 000000000000000000a7aa0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
