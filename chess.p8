@@ -322,8 +322,7 @@ end
 
 function _init()
 	level = 0
-	_update = s_home
-	_draw = draw_home
+	curr_state = s_home
 end
 
 function over_dead_slime(e)
@@ -408,17 +407,6 @@ function update_animation()
 	end
 end
 
--- states --
-
-function s_idle()
-	update_animation()
-	show_hint = true
-	if move_cursor(p) then 
-		_update = s_player
-		show_hint = false
-	end
-end
-
 function burn(x,y)
 	particle_explosion(x, y, u/2, function()
 		e = get_enemy_at(x,y)
@@ -460,10 +448,25 @@ function die()
 	p.hp = 0
 end
 
+-- states --
+
+function s_idle()
+	_draw = draw_game
+	update_animation()
+	show_hint = true
+	if move_cursor(p) then
+		show_hint = false
+		return s_player
+	end
+	return s_idle
+end
+
+
 function s_player()
+	_draw = draw_game
 	update_animation()
 	sfx(10)
-	_update = animate(p,p.cx,p.cy,function ()
+	return animate(p,p.cx,p.cy,function ()
 		e = get_enemy_at(p.x,p.y)
 		if e != nil then
 			if e.t == e_spinner or e.t == e_fire_elem then
@@ -472,26 +475,28 @@ function s_player()
 				kill(e)
 			end
 		end
-		_update = s_traps
+		return s_traps
 	end)
 end
 
 function s_die()
+	_draw = draw_game
 	sfx(12)
 	update_animation()
-	_draw = draw_game_over
-	_update = s_dead
+	return s_dead
 end
 
 function s_dead()
+	_draw = draw_game_over
 	update_animation()
 	if btn(4) and btn(5) then
 		_init()
 	end
+	return s_dead
 end
 
 function s_traps()
-	_update = s_enemies
+	_draw = draw_game
 	for trap in all(traps) do
 		trap.i = (trap.i + 1) % trap.t
 		if trap.i == 0 then
@@ -501,64 +506,58 @@ function s_traps()
 				kill(e)
 			elseif trap.x == p.x and trap.y == p.y then
 				die()
-				_update = s_die
+				return s_die
 			end
 		end
 	end
+	return s_enemies
 end
 
 idx = 1
 function s_enemies()
+	_draw = draw_game
+
 	update_animation()
 	if #particles > 0 then -- end all animations before proceeding
-		return
+		return s_enemies
 	end
 
 	if idx > #enemies then
-		_update = s_check
 		idx = 1
-		return
+		return s_check
 	end
 
 	e = enemies[idx]
-	if e.t == e_bat then
-		sfx(13)
-		animate_move(e, move_bat)
-	elseif e.t == e_red_bat then
-		sfx(13)
-		animate_move(e, move_red_bat)
-	elseif e.t == e_spinner then
-		sfx(13)
-		animate_move(e, move_spinner)
-	elseif e.t == e_slime then
-		sfx(13)
-		animate_move(e, move_slime)
-	elseif e.t == e_skeleton then
-		sfx(13)
-		animate_move(e, move_skeleton)
-	elseif e.t == e_kobold then
-		sfx(13)
-		animate_move(e, move_kobold) 
-	elseif e.t == e_ghost then
-		sfx(13)
-		animate_move(e, move_ghost)
-	elseif e.t == e_ember then
-		sfx(13)
-		animate_move(e, move_ember)
-	elseif e.t == e_fire_elem then
-		sfx(13)
-		animate_move(e, move_fire_elem)
-	elseif e.t == e_knight then
-		sfx(13)
-		animate_move(e, move_knight)
-	end
 	idx += 1
+	sfx(13)
+	if e.t == e_bat then
+		return animate_move(e, move_bat)
+	elseif e.t == e_red_bat then
+		return animate_move(e, move_red_bat)
+	elseif e.t == e_spinner then
+		return animate_move(e, move_spinner)
+	elseif e.t == e_slime then
+		return animate_move(e, move_slime)
+	elseif e.t == e_skeleton then
+		return animate_move(e, move_skeleton)
+	elseif e.t == e_kobold then
+		return animate_move(e, move_kobold)
+	elseif e.t == e_ghost then
+		return animate_move(e, move_ghost)
+	elseif e.t == e_ember then
+		return animate_move(e, move_ember)
+	elseif e.t == e_fire_elem then
+		return animate_move(e, move_fire_elem)
+	elseif e.t == e_knight then
+		return animate_move(e, move_knight)
+	end
+	return s_enemies
 end
 
 function animate_move(e, move)
-	next_s = _update
 	x, y = move(e)
-	_update=animate(e,x,y, function()
+	saved_state = curr_state
+	return animate(e,x,y, function()
 		if e.x == p.x and e.y == p.y then
 			die()
 		elseif e.t == e_spinner then
@@ -568,60 +567,59 @@ function animate_move(e, move)
 				end
 			end
 		end
-		_update = next_s
+		return saved_state
 	end)
 end
 
 function animate(e, tx, ty, after)
 	a, fs = 0, 8 -- frames
 	fx, fy = e.x, e.y
-	return function()
+	f = function()
+		_draw = draw_game
 		update_animation()
 		a += 1
 		if a >= fs then
 			e.x, e.y = tx, ty
-			_update = after
-		else
-			e.x = (fx * (fs - a) + tx * a) / fs
-			e.y = (fy * (fs - a) + ty * a) / fs
+			return after
 		end
+		e.x = (fx * (fs - a) + tx * a) / fs
+		e.y = (fy * (fs - a) + ty * a) / fs
+		return f
 	end
+	return f
 end
 
 function s_check()
+	_draw = draw_game
+
 	if p.hp == 0 then
-		_update = s_die
+		return s_die
 	elseif hits_stairs(p.x,p.y) then
 		sfx(9)
-		_update = s_next_level
- 	else
-		_update = s_idle
-	end
+		return s_next_level
+ 	end
+	return s_idle
 end
 
 level = 0
 function s_next_level()
 	level += 1
-	if level <= 10 then
-		enemies = {}
-		particles = {}
-		init_random_level(3 * level)
-		_update = s_idle
-	else
-		_update = s_dead
-		_draw = draw_win()
+	if level > 10 then
+		return s_dead
 	end
+	enemies = {}
+	particles = {}
+	init_random_level(3 * level)
+	return s_idle
 end
 
 function s_home()
+	_draw = draw_home
 	update_animation()
 	if btn(4) and not btn(5) then
-		_update = s_next_level
-		_draw = draw_game
-	else
-		_update = s_home
-		_draw = draw_home
+		return s_next_level
 	end
+	return s_home
 end
 
 show_hint = true
@@ -631,6 +629,12 @@ function draw_hint(x, y)
 	else
 		spr(19, x, y)
 	end
+end
+
+curr_state = s_home
+_draw = draw_home
+function _update()
+	curr_state = curr_state()
 end
 
 function particle_explosion(x,y,r,after)
