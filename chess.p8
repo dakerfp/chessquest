@@ -614,6 +614,7 @@ function s_next_level()
 end
 
 function s_home()
+	update_animation()
 	if btn(4) and not btn(5) then
 		_update = s_next_level
 		_draw = draw_game
@@ -705,13 +706,11 @@ function draw_game()
 	end
 end
 
-home_show=0
 function draw_home()
 	cls()
 	mapdraw(0, 0, 20, 30, 11, 8) -- tiles
 	print('chessquest', 45, 44)
-	home_show = (home_show+1)%32
-	if home_show < 16 then
+	if t % 32 < 16 then
 		print('press \142 to play', 34, 44 + 2 * u)
 	end
 end
