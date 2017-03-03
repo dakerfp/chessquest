@@ -317,12 +317,12 @@ end
 
 function hits_stairs(x, y)
 	val = mget(x/u,y/u)
- return fget(val, flag_stairs)
+	return fget(val, flag_stairs)
 end
 
 function its_a_trap(x, y)
 	val = mget(x,y)
- return fget(val, flag_trap)
+	return fget(val, flag_trap)
 end
 
 function _init()
