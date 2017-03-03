@@ -7,13 +7,10 @@ __lua__
 -- todo:
 --- check for ember chain reaction
 --- add slime slow
---- add elemental
 --- add mage
 --- add beholder
---- add dark knights
 --- add cocatrice
 --- decide for 8x8 or 16x16
---- create particles
 --- add dragon
 
 flag_wall = 0
