@@ -302,8 +302,12 @@ function get_enemy_at(x,y)
 	return nil
 end
 
+function is_killable(e)
+	return e.t != e_fire_elem and e.t != e_spinner
+end
+
 function can_move_to(e,x,y)
-	return not hits_wall(x,y) and (get_enemy_at(x,y) == nil or e.t == e_spinner)
+	return not hits_wall(x,y) and (get_enemy_at(x,y) == nil)
 		and x >= 0 and x <= 10*u and y >= 0 and y <= 8*u
 end
 
@@ -502,10 +506,10 @@ function s_player()
 	return animate(p,p.cx,p.cy,function ()
 		e = get_enemy_at(p.x,p.y)
 		if e != nil then
-			if e.t == e_spinner or e.t == e_fire_elem then
-				die()
-			else
+			if is_killable(e) then
 				kill(e)
+			else
+				die()
 			end
 		end
 		return s_traps
