@@ -10,7 +10,10 @@ __lua__
 --- add beholder
 --- add cocatrice
 --- decide for 8x8 or 16x16
---- add dragon
+--- add dragon boss
+--- add snake boss
+--- add shield mechanics
+--- add 2d metamap
 
 flag_wall = 0
 flag_stairs = 1
