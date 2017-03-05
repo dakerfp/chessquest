@@ -6,7 +6,6 @@ __lua__
 
 -- todo:
 --- check for ember chain reaction
---- add slime slow
 --- add mage
 --- add beholder
 --- add cocatrice
@@ -37,7 +36,7 @@ e_dead_skel  = 6
 e_floor_trap = 61
 e_spinner    = 20
 
-p = {t=e_player,x=u,y=u,vx=u,cx=u,cy=u,hp=3}
+p = {t=e_player,x=u,y=u,vx=u,cx=u,cy=u,hp=3,slow=false}
 t = 0
 dead_bodies = {}
 enemies = {}
@@ -357,7 +356,7 @@ function move_cursor(p)
 			cursor_state = s_down
 		end
 	elseif cursor_state == s_left then
-		if btn(0) and can_move_to(p,p.cx,p.cy) and not hits_wall(p.cx - u, p.cy) then
+		if btn(0) and can_move_to(p,p.cx,p.cy) and not hits_wall(p.cx - u, p.cy) and not p.slow then
 			p.cx -= u
 			cursor_state = s_left2
 		elseif btn(1) then
@@ -365,7 +364,7 @@ function move_cursor(p)
 			cursor_state = s_center
 		end
 	elseif cursor_state == s_right then
-		if btn(1) and can_move_to(p,p.cx,p.cy) and not hits_wall(p.cx + u, p.cy) then
+		if btn(1) and can_move_to(p,p.cx,p.cy) and not hits_wall(p.cx + u, p.cy) and not p.slow  then
 			p.cx += u
 			cursor_state = s_right2
 		elseif btn(0) then
@@ -373,7 +372,7 @@ function move_cursor(p)
 			cursor_state = s_center
 		end
 	elseif cursor_state == s_up then
-		if btn(2) and can_move_to(p,p.cx,p.cy) and not hits_wall(p.cx, p.cy - u) then
+		if btn(2) and can_move_to(p,p.cx,p.cy) and not hits_wall(p.cx, p.cy - u) and not p.slow  then
 			p.cy -= u
 			cursor_state = s_up2
 		elseif btn(3) then
@@ -381,7 +380,7 @@ function move_cursor(p)
 			cursor_state = s_center
 		end
 	elseif cursor_state == s_down then
-		if btn(3) and can_move_to(p,p.cx,p.cy) and not hits_wall(p.cx, p.cy + u) then
+		if btn(3) and can_move_to(p,p.cx,p.cy) and not hits_wall(p.cx, p.cy + u) and not p.slow  then
 			p.cy += u
 			cursor_state = s_down2
 		elseif btn(2) then
@@ -419,6 +418,7 @@ function move_cursor(p)
 	dpressed = btn(0) or btn(1) or btn(2) or btn(3)
 	if btn(4) then
 		cursor_state = s_center
+		p.slow = false
 		return true
 	end
 	return false
@@ -466,6 +466,8 @@ function kill(e)
 			burn(e.x + u, e.y - u)
 			burn(e.x - u, e.y - u)
 		end)
+	elseif e.t == e_slime and p.x == e.x and e.y == e.y then
+		p.slow = true
 	end
 	add(dead_bodies, e)
 	del(enemies, e)
