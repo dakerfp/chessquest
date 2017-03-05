@@ -94,6 +94,10 @@ function randomize_map()
 	end
 end
 
+function eq_pos(a,b)
+	return a.x == b.x and a.y == b.y
+end
+
 function fetch_next_enemy(cost)
 	cost_table = {
 		{e_bat, 1}, -- bat must come first
@@ -295,7 +299,7 @@ end
 
 function get_enemy_at(x,y)
 	for e in all(enemies) do
-		if e.x == x and e.y == y then
+		if eq_pos(e,{x=x,y=y}) then
 			return e
 		end
 	end
@@ -439,7 +443,7 @@ function burn(x,y)
 		e = get_enemy_at(x,y)
 		if e != nil then
 			kill(e)
-		elseif p.x == x and p.y == y then
+		elseif eq_pos(p,{x=x,y=y}) then
 			die()
 		end
 	end)
@@ -532,7 +536,7 @@ function s_traps()
 		 	e = get_enemy_at(trap.x,trap.y)
 			if e != nil and e.t != e_spinner then
 				kill(e)
-			elseif trap.x == p.x and trap.y == p.y then
+			elseif eq_pos(trap,p) then
 				die()
 				return s_die
 			end
@@ -586,11 +590,11 @@ function animate_move(e, move)
 	x, y = move(e)
 	saved_state = curr_state
 	return animate(e,x,y, function()
-		if e.x == p.x and e.y == p.y then
+		if eq_pos(e,p) then
 			die()
 		elseif e.t == e_spinner then
 			for o in all(enemies) do
-				if o != e and x == o.x and y == o.y then
+				if o != e and eq_pos(o,{x=x,y=y}) then
 					kill(o)
 				end
 			end
