@@ -316,12 +316,12 @@ function hits_wall(x,y)
 	return fget(val, flag_wall)
 end
 
-function hits_stairs(x, y)
+function hits_stairs(x,y)
 	val = mget(x/u,y/u)
 	return fget(val, flag_stairs)
 end
 
-function its_a_trap(x, y)
+function its_a_trap(x,y)
 	val = mget(x,y)
 	return fget(val, flag_trap)
 end
@@ -329,15 +329,6 @@ end
 function _init()
 	level = 0
 	curr_state = s_home
-end
-
-function over_dead_slime(e)
-	for b in all(dead_bodies) do
-		if e.x == b.x and e.y == b.y and b.t == e_dead_slime then
-			return true
-		end
-	end
-	return false
 end
 
 cursor_state = 0
