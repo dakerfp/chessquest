@@ -340,10 +340,8 @@ function move_cursor(p)
 	s_center, s_left, s_right, s_up, s_down,
 		s_left2, s_right2, s_up2, s_down2 = 0,1,2,3,4,5,6,7,8
 
-	anybtn = btn(0) or btn(1) or btn(2) or btn(3)
 	if dpressed then
-		dpressed = anybtn
-		return btn(4)-- Do nothing
+		-- ignore
 	elseif cursor_state == s_center then
 		if btn(0) and not hits_wall(p.cx - u, p.cy) then
 			p.cx -= u
@@ -418,8 +416,12 @@ function move_cursor(p)
 		p.vx = -u
 	end
 
-	dpressed = anybtn
-	return btn(4)
+	dpressed = btn(0) or btn(1) or btn(2) or btn(3)
+	if btn(4) then
+		cursor_state = s_center
+		return true
+	end
+	return false
 end
 
 function update_animation()
@@ -624,7 +626,6 @@ function s_check()
 		sfx(9)
 		return s_next_level
  	end
-	cursor_state = 0
 	return s_idle
 end
 
@@ -637,7 +638,6 @@ function s_next_level()
 	enemies = {}
 	particles = {}
 	init_random_level(3 * level)
-	cursor_state = 0
 	return s_idle
 end
 
