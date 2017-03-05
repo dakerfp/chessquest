@@ -142,7 +142,7 @@ function init_random_level(cost)
 
 			if not hits_wall(x, y)
 				and get_enemy_at(x,y) == nil
-				and x != p.x and y != p.y
+				and dist2(p,{x=x,y=y}) >= 2*2
 			then	
 				-- xxx
 				tp, c = fetch_next_enemy(cost)
