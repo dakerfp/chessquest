@@ -334,64 +334,91 @@ function over_dead_slime(e)
 	return false
 end
 
+cursor_state = 0
 dpressed = false
 function move_cursor(p)
-	if dpressed and
-		(btn(0) or btn(1)
-		 or btn(2) or btn(3)) then
-		 -- pass
-	elseif btn(0) then
-		if p.cy == p.y and
-			p.cx >= p.x - u and
-			not hits_wall(p.cx - u, p.cy) and (
-				p.cx > p.x or
-				can_move_to(p,p.cx,p.cy)
-			)
-		then
+	s_center, s_left, s_right, s_up, s_down,
+		s_left2, s_right2, s_up2, s_down2 = 0,1,2,3,4,5,6,7,8
+
+	anybtn = btn(0) or btn(1) or btn(2) or btn(3)
+	if dpressed then
+		dpressed = anybtn
+		return btn(4)-- Do nothing
+	elseif cursor_state == s_center then
+		if btn(0) and not hits_wall(p.cx - u, p.cy) then
 			p.cx -= u
-		end
-		dpressed = true
-	elseif btn(1) then
-		if p.cy == p.y and
-			p.cx <= p.x + u and
-			not hits_wall(p.cx + u, p.cy) and (
-				p.cx < p.x or
-				can_move_to(p,p.cx,p.cy)
-			)
-		then
+			cursor_state = s_left
+		elseif btn(1) and not hits_wall(p.cx + u, p.cy) then
 			p.cx += u
-		end
-		dpressed = true
-	elseif btn(2) then
-		if p.cx == p.x and
-			p.cy >= p.y - u and
-			not hits_wall(p.cx, p.cy - u) and (
-				p.cy > p.y or
-				can_move_to(p,p.cx,p.cy)
-			)
-		then
+			cursor_state = s_right
+		elseif btn(2) and not hits_wall(p.cx, p.cy - u) then
 			p.cy -= u
-		end
-		dpressed = true
-	elseif btn(3) then
-		if p.cx == p.x and
-			p.cy <= p.y + u and not hits_wall(p.cx, p.cy + u) and (
- 			p.cy < p.y or
- 			can_move_to(e,p.cx,p.cy))
-		then
+			cursor_state = s_up
+		elseif btn(3) and not hits_wall(p.cx, p.cy + u) then
 			p.cy += u
+			cursor_state = s_down
 		end
-		dpressed = true
-	else
-		dpressed = false
+	elseif cursor_state == s_left then
+		if btn(0) and can_move_to(p,p.cx,p.cy) and not hits_wall(p.cx - u, p.cy) then
+			p.cx -= u
+			cursor_state = s_left2
+		elseif btn(1) then
+			p.cx += u
+			cursor_state = s_center
+		end
+	elseif cursor_state == s_right then
+		if btn(1) and can_move_to(p,p.cx,p.cy) and not hits_wall(p.cx + u, p.cy) then
+			p.cx += u
+			cursor_state = s_right2
+		elseif btn(0) then
+			p.cx -= u
+			cursor_state = s_center
+		end
+	elseif cursor_state == s_up then
+		if btn(2) and can_move_to(p,p.cx,p.cy) and not hits_wall(p.cx, p.cy - u) then
+			p.cy -= u
+			cursor_state = s_up2
+		elseif btn(3) then
+			p.cy += u
+			cursor_state = s_center
+		end
+	elseif cursor_state == s_down then
+		if btn(3) and can_move_to(p,p.cx,p.cy) and not hits_wall(p.cx, p.cy + u) then
+			p.cy += u
+			cursor_state = s_down2
+		elseif btn(2) then
+			p.cy -= u
+			cursor_state = s_center
+		end
+	elseif cursor_state == s_left2 then
+		if btn(1) then
+			p.cx += u
+			cursor_state = s_left
+		end
+	elseif cursor_state == s_right2 then
+		if btn(0) then
+			p.cx -= u
+			cursor_state = s_right
+		end
+	elseif cursor_state == s_up2 then
+		if btn(3) then
+			p.cy += u
+			cursor_state = s_up
+		end
+	elseif cursor_state == s_down2 then
+		if btn(3) then
+			p.cy -= u
+			cursor_state = s_down
+		end
 	end
- 
+
 	if p.cx > p.x then
 		p.vx = u
 	elseif p.cx < p.x then
 		p.vx = -u
 	end
 
+	dpressed = anybtn
 	return btn(4)
 end
 
@@ -460,7 +487,6 @@ function s_idle()
 	end
 	return s_idle
 end
-
 
 function s_player()
 	_draw = draw_game
@@ -598,6 +624,7 @@ function s_check()
 		sfx(9)
 		return s_next_level
  	end
+	cursor_state = 0
 	return s_idle
 end
 
@@ -610,6 +637,7 @@ function s_next_level()
 	enemies = {}
 	particles = {}
 	init_random_level(3 * level)
+	cursor_state = 0
 	return s_idle
 end
 
