@@ -6,7 +6,6 @@ __lua__
 
 -- todo:
 --- check for ember chain reaction
---- add mage
 --- add beholder
 --- add cocatrice
 --- add freeze magic
@@ -35,6 +34,7 @@ e_fire_elem  = 25
 e_skeleton   = 59
 e_kobold     = 37
 e_ghost      = 39
+e_wizard     = 55
 e_dead       = 4
 e_ember      = 41
 e_knight     = 43
@@ -43,7 +43,7 @@ e_dead_skel  = 6
 e_floor_trap = 61
 e_spinner    = 20
 
-p = {t=e_player,x=u,y=u,vx=u,cx=u,cy=u,hp=3,slow=false}
+p = {t=e_player,atk=1,x=u,y=u,vx=u,cx=u,cy=u,hp=3,slow=false}
 t = 0
 dead_bodies = {}
 enemies = {}
@@ -110,6 +110,7 @@ function fetch_next_enemy(cost)
 		{e_slime, 3},
 		{e_fire_elem, 5},
 		{e_skeleton, 3},
+		{e_wizard, 5},
 		{e_kobold, 5},
 		{e_ember, 5},
 		{e_ghost, 7},
@@ -131,7 +132,7 @@ function init_random_level(cost)
 	dead_bodies = {}
 	traps = {}
 	randomize_map() -- xxx
-	p = {x=u,y=5*u,vx=u,cx=u,cy=5*u, hp=3}
+	p = {x=u,y=5*u,vx=u,cx=u,cy=5*u, hp=3, atk=1}
 	while cost > 0 do
 		while true do
 			-- 2x more probable to fit in 2nd half
@@ -139,6 +140,8 @@ function init_random_level(cost)
 			y = flr(rnd(7)) * u
 			vx = 1 - 2 * flr(rnd(2)) -- 1 or -1
 			vy = 1 - 2 * flr(rnd(2)) -- 1 or -1
+			def = 0
+			s = flr(rnd(2)) -- state 0 or 1
 
 			if not hits_wall(x, y)
 				and get_enemy_at(x,y) == nil
@@ -146,8 +149,12 @@ function init_random_level(cost)
 			then	
 				-- xxx
 				tp, c = fetch_next_enemy(cost)
+				if tp == e_spinner or tp == e_fire_elem then
+					def = 1
+				end
 				cost -= c
-				add(enemies, {t=tp, x=x, y=y, vx=vx*u, vy=vy*u, state=flr(rnd(2))}) -- state 0 or 1
+				e = {t=tp, x=x, y=y, vx=vx*u, vy=vy*u, def=def, state=s}
+				add(enemies, e)
 				break
 			end
 		end
@@ -198,6 +205,31 @@ function move_slime(e)
 end
 
 function move_fire_elem(e)
+	return move_closest(e, {
+		{x=e.x-u,y=e.y  },
+		{x=e.x+u,y=e.y  },
+		{x=e.x  ,y=e.y-u},
+		{x=e.x  ,y=e.y+u}}, false)
+end
+
+function get_random_enemy()
+	return enemies[flr(rnd(#enemies)) + 1]
+end
+
+function move_wizard(e)
+	if e.other != nil then
+		o.def -= 1
+		o.shield = false
+	end
+	while #enemies > 1 do
+		o = get_random_enemy()
+		if o != e then
+			o.def += 1
+			o.shield = true
+			e.other = o
+			break
+		end
+	end
 	return move_closest(e, {
 		{x=e.x-u,y=e.y  },
 		{x=e.x+u,y=e.y  },
@@ -311,7 +343,7 @@ function get_enemy_at(x,y)
 end
 
 function is_killable(e)
-	return e.t != e_fire_elem and e.t != e_spinner
+	return e.def < p.atk
 end
 
 function can_move_to(e,x,y)
@@ -472,6 +504,9 @@ function kill(e)
 			burn(e.x + u, e.y - u)
 			burn(e.x - u, e.y - u)
 		end)
+	elseif e.t == e_wizard and e.other != nil then
+		e.other.shield = false
+		e.other.def -= 1
 	elseif e.t == e_slime and p.x == e.x and e.y == e.y then
 		p.slow = true
 	end
@@ -586,6 +621,8 @@ function s_enemies()
 		return animate_move(e, move_fire_elem)
 	elseif e.t == e_knight then
 		return animate_move(e, move_knight)
+	elseif e.t == e_wizard then
+		return animate_move(e, move_wizard)
 	end
 	return s_enemies
 end
@@ -681,6 +718,19 @@ function particle_explosion(x,y,r,after)
 	end})
 end
 
+function spr_bg_color(s)
+	if s == e_skeleton or
+		s == e_kobold or
+		s == e_ember or
+		s == e_knight or
+		s == e_wizard
+	then
+		return 11
+	end
+	return 0
+end
+
+
 off = {x=20, y=30}
 function draw_game()
 	cls()
@@ -723,18 +773,17 @@ function draw_game()
 
  	for e in all(enemies) do
 		s = e.t + ds/2
-		if e.t == e_skeleton or
-			e.t == e_kobold or
-			e.t == e_ember or
-			e.t == e_knight
-		then
-			palt(11, true)
-			palt(0, false)
-		end
+
+		bg = spr_bg_color(e.t)
+		palt(0, false)
+		palt(bg, true)
 		spr(s, off.x+e.x, off.y+e.y - 2,
 			1, 1, (e.vx > 0))
+		palt(bg, false)
 		palt(0, true)
-		palt(11, false)
+		if e.shield == true then
+			circ(off.x+e.x+4,off.y+e.y+2, 5+ds, 12)
+		end
 	end
 
 	if p.hp > 0 then
