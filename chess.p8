@@ -134,29 +134,27 @@ function init_random_level(cost)
 	randomize_map() -- xxx
 	p = {x=u,y=5*u,vx=u,cx=u,cy=5*u, hp=3, atk=1}
 	while cost > 0 do
-		while true do
-			-- 2x more probable to fit in 2nd half
-			x = flr(9 - rnd(9 + 4) % 9) * u
-			y = flr(rnd(7)) * u
-			vx = 1 - 2 * flr(rnd(2)) -- 1 or -1
-			vy = 1 - 2 * flr(rnd(2)) -- 1 or -1
-			def = 0
-			s = flr(rnd(2)) -- state 0 or 1
+		-- 2x more probable to fit in 2nd half
+		x = flr(9 - rnd(9 + 4) % 9) * u
+		y = flr(rnd(7)) * u
+		vx = 1 - 2 * flr(rnd(2)) -- 1 or -1
+		vy = 1 - 2 * flr(rnd(2)) -- 1 or -1
+		def = 0
+		s = flr(rnd(2)) -- state 0 or 1
+		e = {x=x, y=y, vx=vx*u, vy=vy*u, def=def, state=s}
 
-			if not hits_wall(x, y)
-				and get_enemy_at(x,y) == nil
-				and dist2(p,{x=x,y=y}) >= 2*2
-			then	
-				-- xxx
-				tp, c = fetch_next_enemy(cost)
-				if tp == e_spinner or tp == e_fire_elem then
-					def = 1
-				end
-				cost -= c
-				e = {t=tp, x=x, y=y, vx=vx*u, vy=vy*u, def=def, state=s}
-				add(enemies, e)
-				break
+		if not hits_wall(x, y)
+			and get_enemy_at(x,y) == nil
+			and dist2(p, e) > 2*u*u
+		then
+			-- xxx
+			tp, c = fetch_next_enemy(cost)
+			if tp == e_spinner or tp == e_fire_elem then
+				def = 1
 			end
+			cost -= c
+			e.t = tp
+			add(enemies, e)
 		end
 	end
 end
